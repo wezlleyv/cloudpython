@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.1/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.1/theme/dracula.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.1/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.1/mode/python/python.min.js"></script>
+    <title>Python</title>
+</head>
+<body>
+
+    <span id="help" style="background-image: url({{ url_for('static', filename='images/help.png') }});"></span>
+    
+    <div class="container">
+      <div class="retangulo">
+      
+      <div id="editor-container">
+          <textarea id="editor" class="dark-theme">{{ codeprevious }}</textarea>
+      </div>
+
+      <div id="terminal-container">
+        <textarea id="terminal"></textarea>
+      </div>
+
+      </div>
+    </div>
+
+    <div>
+
+    </div>
+
+    <script>
+    var editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
+      lineNumbers: true,
+      mode: "python",
+      theme: "dracula",
+      lineWrapping: true
+    });
+  </script>
+
+<script>
+  document.addEventListener('keydown', function(event) {
+    var terminal = document.getElementById('terminal-container');
+    var code = document.getElementById("editor-container");
+
+    function hidden(id) {
+        if (terminal.style.display == "none" || id === 1) {
+          code.style.display = "none"
+          terminal.style.display = "block"
+        } else {
+          code.style.display = "block"
+          terminal.style.display = "none"
+        };
+    }
+
+      if (event.key === 'F5') {
+          event.preventDefault();
+          enviarTexto("/python");
+          hidden(1)
+      }
+
+      if (event.key === 'F2') {
+        event.preventDefault();
+        hidden(0)
+      }
+
+      if (event.key === 'F3') {
+          event.preventDefault();
+          var base64 = btoa(editor.getValue());
+          window.open("https://ray.so/#code="+ base64 +"&language=python&title=main.py", "_blank");
+      }
+
+      if (event.key === 'F4') {
+          event.preventDefault();
+          var base64 = btoa(editor.getValue());
+          window.open("/share/"+ base64, "_blank");
+      }
+
+      if (event.keyCode === 83 && (event.ctrlKey || event.metaKey)) {
+          event.preventDefault(); 
+          var base64 = btoa(editor.getValue());
+          window.location.href = "/download/"+ base64;
+      }
+
+  });
+  
+  function enviarTexto(url) {
+      var texto = editor.getValue();
+      
+      var data = new URLSearchParams();
+      data.append('code', texto);
+
+      var requestOptions = {
+          method: 'POST',
+          body: data,
+          redirect: 'follow'
+      };
+
+      fetch(url, requestOptions)
+          .then(response => response.text())
+          .then(result => terminal.textContent = JSON.stringify(result))
+          .catch(error => console.log('error', error));
+  }
+  </script>
+      
+</body>
+</html>
